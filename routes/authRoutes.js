@@ -1,6 +1,6 @@
 import express from "express";
 import { requireSignIn, isAdmin } from "../middleware/authMidleware.js";
-import { UnfollowUsercontroller, deleteUserController, followUsercontroller, getAllUsers, getUserFollowerandFollowingList, loginController, searchUsers, signupController, updateprofile } from "../controller/authController.js";
+import { UnfollowUsercontroller, deleteUserController, followUsercontroller, getAllUsers, getUserFollowerandFollowingList, loginController, logoutController, searchUsers, signupController, updateprofile } from "../controller/authController.js";
 import { upload } from "../middleware/multer.middleware.js";
 import { getNotifications } from "../controller/notificationcontroller.js";
 
@@ -13,6 +13,9 @@ router.post("/signup", signupController);
 //login route
 
 router.post("/login", loginController);
+
+// logout route
+router.post("/logout", requireSignIn, logoutController)
 
 // user profile update route
 

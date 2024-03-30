@@ -107,6 +107,21 @@ export const loginController = async (req, res) => {
   }
 }
 
+export const logoutController = (req, res) => {
+  try {
+
+    res.clearCookie('token'); // Clear the token cookie
+
+    // Send a success response
+    res.status(200).json({ success: true, message: 'Logged out successfully' });
+  } catch (error) {
+    // If an error occurs, send a 500 Internal Server Error response
+    console.error('Error while logging out:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+};
+
+
 export const updateprofile = async (req, res) => {
   try {
     const { userName, email } = req.body;

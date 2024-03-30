@@ -2,6 +2,7 @@ import Post from "../models/postModel.js";
 import Comment from "../models/commentLikeModel.js";
 import { commentPost, likePost } from "../helper/notificationService.js";
 import uploadFile from "../utils/cloudinery.config.js";
+import User from "../models/userModel.js";
 
 export const createPostController = async (req, res) => {
   try {
@@ -82,10 +83,22 @@ export const getPostController = async (req, res) => {
     const post = await Post.findById(req.params.id);
     res.status(200).send({
       success: true,
-      post
+      post: {
+        postId: post._id,
+        content: post.content,
+        media_Url: post.media_Url,
+        likes: post.likes,
+        comments: post.comments
+      }
     })
 
   } catch (error) {
+
+    res.status(500).send({
+      success: false,
+      message: "Error while getting post",
+      error: error.message
+    })
 
   }
 }
@@ -96,10 +109,9 @@ export const createCommentController = async (req, res) => {
     const { postId, content } = req.body;
     const userId = req.user._id;
 
-    // Create the comment
     const comment = await Comment.Comment.create({ userId, postId, content });
 
-    // Find the post and add the comment to its comments array
+
     const post = await Post.findByIdAndUpdate(postId, { $push: { comments: comment._id } }, { new: true });
 
     commentPost(userId._id, post._id)
@@ -120,3 +132,56 @@ export const createCommentController = async (req, res) => {
     });
   }
 };
+
+// get timeline post 
+
+export const getallPostController = async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.user._id);
+    const UserPosts = await Post.find({ userId: currentUser._id });
+    const frindsPosts = await Promise.all(
+      currentUser.following.map((friendId) => {
+        return Post.find({ userId: friendId });
+      })
+    )
+    res.status(200).send({
+      success: true,
+      message: "Posts fetched successfully",
+      userId: req.user._id,
+      Posts: UserPosts.concat(...frindsPosts)
+
+    })
+  } catch (error) {
+
+    res.status(500).send({
+      success: false,
+      message: "Error while getting posts",
+      error: error.message
+    })
+
+  }
+}
+
+// only admin can delete post 
+
+export const deletePostController = async (req, res) => {
+  try {
+
+    const post = await Post.findByIdDelete(req.params.id);
+
+    res.status(200).send({
+      success: true,
+      message: "Post deleted successfully",
+      post
+    })
+
+
+  } catch (error) {
+
+    res.status(500).send({
+      success: false,
+      message: "Error while deleting post",
+      error: error.message
+    })
+  }
+}
